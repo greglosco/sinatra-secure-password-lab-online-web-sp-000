@@ -1,73 +1,31 @@
 require "./config/environment"
-require "./app/models/user"
+
 class ApplicationController < Sinatra::Base
 
   configure do
-    set :views, "app/views"
-    enable :sessions
-    set :session_secret, "password_security"
+    set :public_folder, 'public'
+    set :views, 'app/views'
   end
 
-  get "/" do
+  # code actions here!
+  get '/recipes'do
+    @recipes = Recipe.all 
     erb :index
-  end
+  end 
+  
+  get '/recipes/new' do 
+    erb :new 
+  end 
 
-  get "/signup" do
-    erb :signup
-  end
-
-  post "/signup" do
-    #your code here
-    @user = User.new(:username => params[:username], :password => params[:password])
+  post '/recipes' do 
+    @recipe = Recipe.create(name: params[:name], ingredients: params[:ingredients], cook_time: params[:cook_time])
     
-    if params[:username] == "" || params[:password] == ""
-      redirect '/failure'
-    else 
-      redirect '/login'
-    end
-    
-  end
-
-  get '/account' do
-    @user = User.find(session[:user_id])
-    erb :account
-  end
-
-
-  get "/login" do
-    erb :login
-  end
-
-  post "/login" do
-    ##your code here
-    @user = User.find_by(:username => params[:username])
-    
-    if @user && @user.authenticate(params[:password])
-      session[:user_id] = @user.id
-      redirect '/account'
-    else
-      redirect '/failure'
-    end
-    
-  end
-
-  get "/failure" do
-    erb :failure
-  end
-
-  get "/logout" do
-    session.clear
-    redirect "/"
-  end
-
-  helpers do
-    def logged_in?
-      !!session[:user_id]
-    end
-
-    def current_user
-      User.find(session[:user_id])
-    end
+    redirect "/recipes/#{@recipe.id}"
+  end 
+  
+  get '/recipes/:id' do 
+    @recipe = Recipe.find_by_id(params[:id])
+    erb :show 
   end
 
 end
